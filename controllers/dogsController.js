@@ -23,7 +23,7 @@ const getAllDogs = async (req, res) => {
   } catch (error) {
     console.error(error.message);
     res.status(500).json({
-      message: "Помилка сервера",
+      message: "Server error",
     });
   }
 };
@@ -34,18 +34,18 @@ const createDog = async (req, res) => {
   try {
     const dog = await Dogs().create({ name, color, tail_length, weight });
     res.json({
-      message: "Собака створена",
+      message: "Dog create",
       dog,
     });
   } catch (error) {
     if (error.name === "SequelizeUniqueConstraintError") {
       res.status(400).json({
-        message: "Собака з таким ім'ям вже існує",
+        message: "this dog name is use ",
       });
     } else {
       console.error(error.message);
       res.status(500).json({
-        message: "Помилка сервера",
+        message: "Server error",
       });
     }
   }

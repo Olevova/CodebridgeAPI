@@ -15,10 +15,10 @@ initDb()
     app.use("/", dogRoutes);
 
     app.listen(PORT, () => {
-      console.log(`Сервер запущено на порту ${PORT}`);
+      console.log(`Server run on  ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("Помилка при ініціалізації бази даних");
+    console.error("Error initial");
     console.error(error);
   });
