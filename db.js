@@ -1,60 +1,65 @@
-const { Sequelize, DataTypes } = require('sequelize');
-require('dotenv').config();
+const sql = require("mssql");
+const { Sequelize, DataTypes } = require("sequelize");
+require("dotenv").config();
 
-const sequelize = new Sequelize(`mysql://${process.env.USER}:${process.env.PASSWOPD}@localhost/dogsDate`, {
-  dialect: 'mysql',
-});
+const DOGS_TABLE = "Dogs";
 
-// Перевірка наявності бази даних
-const checkDatabase = () => {
-  return sequelize.query('CREATE DATABASE IF NOT EXISTS dogsDate;')
-    .then(() => {
-      console.log('База даних успішно створена або вже існує');
+const initDb = () => {
+  return sql
+    .connect({
+      user: process.env.DB_USER,
+      password: process.env.DB_PASSWORD,
+      server: process.env.DB_HOST,
+      options: {
+        encrypt: false,
+        trustServerCertificate: true,
+      },
     })
-    .catch(error => {
-      console.error('Помилка створення бази даних:', error);
-    });
-};
-
-// Створення моделі (таблиці)
-const Dog = sequelize.define('Dog', {
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-  },
-  color: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-  tail_length: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    validate: {
-      min: 0,
-    },
-  },
-  weight: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-  },
-});
-
-const defineDogModel = () => {
-  return Dog.sync()
     .then(() => {
-      console.log('Модель (таблиця) створена в базі даних');
-      return Dog;
-    })
-    .catch(error => {
-      console.error('Помилка створення моделі (таблиці):', error);
-      throw error;
+      const query = `IF DB_ID('${process.env.DB_NAME}') IS NULL CREATE DATABASE ${process.env.DB_NAME}`;
+      return sql.query(query).then(() => {
+        const sequelize = new Sequelize({
+          dialect: "mssql",
+          host: process.env.DB_HOST,
+          database: process.env.DB_NAME,
+          port: process.env.DB_PORT,
+          username: process.env.DB_USER,
+          password: process.env.DB_PASSWORD,
+          dialectOptions: {
+            trustServerCertificate: true,
+            encrypt: false,
+          },
+        });
+
+        const Dogs = sequelize.define(DOGS_TABLE, {
+          name: {
+            type: DataTypes.STRING,
+            allowNull: false,
+            unique: true,
+          },
+          color: {
+            type: DataTypes.STRING,
+            allowNull: false,
+          },
+          tail_length: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            validate: {
+              min: 0,
+            },
+          },
+          weight: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+          },
+        });
+
+        return Dogs.sync();
+      });
     });
 };
 
 module.exports = {
-  sequelize,
-  Dog,
-  checkDatabase,
-  defineDogModel,
+  initDb,
+  dogsCollectionName: DOGS_TABLE,
 };

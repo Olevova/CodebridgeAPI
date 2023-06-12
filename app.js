@@ -1,29 +1,24 @@
-const express = require('express');
-const logger = require('morgan');
-const cors = require('cors');
-const { checkDatabase, defineDogModel } = require('./db');
-const dogRoutes = require('./routes/dogs');
-
+const express = require("express");
+const logger = require("morgan");
+const cors = require("cors");
+const dogRoutes = require("./routes/dogs");
+const { initDb } = require("./db");
+const PORT = process.env.PORT || 3000;
 const app = express();
-app.use(cors());
-const formatsLogger = app.get('env') === 'development' ? 'dev' : 'short';
-app.use(logger(formatsLogger));
-app.use(express.json());
+const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
-app.use('/', dogRoutes);
+initDb()
+  .then(() => {
+    app.use(cors());
+    app.use(logger(formatsLogger));
+    app.use(express.json());
+    app.use("/", dogRoutes);
 
-// Перевірка бази даних та визначення моделі
-checkDatabase()
-  .then(() => defineDogModel())
-  .then(Dog => {
-    // Використовуйте модель `Dog` для взаємодії з базою даних
-    const PORT = process.env.PORT || 3000;
     app.listen(PORT, () => {
       console.log(`Сервер запущено на порту ${PORT}`);
     });
   })
-  .catch(error => {
-    console.error('Помилка підключення до бази даних:', error);
+  .catch((error) => {
+    console.error("Помилка при ініціалізації бази даних");
+    console.error(error);
   });
-
-
